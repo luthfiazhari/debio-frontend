@@ -6,5 +6,9 @@ const workerDownload = new Worker(
   './ipfsWorkerDownloadChunked',
   { type: 'module', name: 'ipfs-download-worker' }
 );
+const workerDownloadLinked = new Worker(
+  './ipfsWorkerDownloadLinkedData',
+  { type: 'module', name: 'ipfs-download-worker-linked' }
+);
 
-export default { workerUpload, workerDownload };
+export default { workerUpload, workerDownload, workerDownloadLinked };

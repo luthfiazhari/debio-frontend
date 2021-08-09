@@ -104,7 +104,7 @@ import countryData from "@/assets/json/country.json"
 import cityData from "@/assets/json/city.json"
 import Kilt from "@kiltprotocol/sdk-js"
 import { u8aToHex } from "@polkadot/util"
-import { upload } from "@/lib/ipfs"
+import { upload, encrypt, arrayBufferToBase64, downloadLinkedFromIPFS } from "@/lib/ipfs"
 
 
 export default {
@@ -123,9 +123,18 @@ export default {
     files: [],
     isLoading: false,
     isUploading: false,
+    identity: null,
   }),
   async mounted() {
-    await this.getCountries();
+    await this.getCountries()
+    this.identity = Kilt.Identity.buildFromMnemonic(this.mnemonic)
+    downloadLinkedFromIPFS(
+      "QmRRKNEm6A4gZVmYgg47FBqJWewtH1br27Jsy1DM7npHYu",
+      this.identity.boxKeyPair.secretKey,
+      this.getKiltBoxPublicKey(),
+      "image.jpg",
+      "image/jpeg"
+    )
   },
   computed: {
     ...mapGetters({
@@ -236,15 +245,46 @@ export default {
 
         const context = this
         fr.addEventListener("load", async () => {
-          // Upload
-          const uploaded = await upload({
-            fileChunk: fr.result,
-            fileType: file.type,
-            fileName: file.name,
-          })
-          context.imageUrl = `https://ipfs.io/ipfs/${uploaded.ipfsPath[0].data.path}` // this is an image file that can be sent to server...
-          context.isUploading = false
-          context.isLoading = false
+          const fileBlob = new Blob([ fr.result ], { type: file.type })
+          const chunkSize = 1 * 1000 * 1024 // 1 MB chunk size
+          const chunksAmount = Math.ceil(fileBlob.size / chunkSize)
+          
+          let next = ""
+          for (let i = chunksAmount; i > 0; i--) {
+            const start = chunkSize * (i - 1)
+            const end = chunkSize * i
+            const chunkBuf = await fileBlob.slice(start, end, fileBlob.type)
+              .arrayBuffer()
+            const chunkBase64 = arrayBufferToBase64(chunkBuf)
+            console.log("Before Encryption: ")
+            console.log(chunkBase64)
+
+            // Encrypt
+            const encrypted = await encrypt({
+              text: chunkBase64,
+              fileType: file.type,
+              fileName: file.name,
+              publicKey: context.getKiltBoxPublicKey(),
+              secretKey: context.identity.boxKeyPair.secretKey
+            })
+            console.log("After Encryption: ")
+            console.log(JSON.stringify(encrypted.chunks))
+
+            // Upload
+            const uploaded = await upload({
+              fileChunk: JSON.stringify({
+                chunk: encrypted.chunks,
+                next: next,
+              }),
+              fileType: file.type,
+              fileName: file.name,
+            })
+
+            next = uploaded.ipfsPath[0].data.path
+            console.log(uploaded)
+          }
+          this.isUploading = false
+          this.isLoading = false
         })
       }
       else {
