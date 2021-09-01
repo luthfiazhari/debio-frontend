@@ -1,0 +1,58 @@
+[
+  {
+    "img": "@/assets/dnaCollectionSteps/dnaSteps/Collection-Step-1.png",
+    "description": "Refrain from eating, drinking, chewing gum, brushing teeth, or smoking for at least 60 minutes before sample collection"
+  },
+  {
+    "img": "@/assets/dnaCollectionSteps/dnaSteps/Collection-Step-2.png",
+    "description": "Rinse your mouth with water. Make sure you swish the water for at least 30 seconds before spitting it out. Repeat. Observe the color. If the water appears colored, repeat rinsing with water until clear"
+  },
+  {
+    "img": "@/assets/dnaCollectionSteps/dnaSteps/Collection-Step-3.png",
+    "description": "Wash your hands properly prior to handling envelopes or cotton swabs to avoid contamination"
+  },
+  {
+    "img": "@/assets/dnaCollectionSteps/dnaSteps/Collection-Step-4.png",
+    "description": "Put on disposable gloves and wear them throughout the entire collection procedure to protect DNA integrity"
+  },
+  {
+    "img": "@/assets/dnaCollectionSteps/dnaSteps/Collection-Step-5.png",
+    "description": "Carefully take a clean cotton swab from the package, grasp only the stem, and pull the swab out. Avoid touching the tips"
+  },
+  {
+    "img": "@/assets/dnaCollectionSteps/dnaSteps/Collection-Step-6.png",
+    "description": "Using sharp scissors, cut the head of one side of the cotton bud (Q-tip), so we know which side of the cotton bud contains the DNA! You will need a total of 4 cotton swabs per person"
+  },
+  {
+    "img": "@/assets/dnaCollectionSteps/dnaSteps/Collection-Step-7.png",
+    "description": "After you have cut the head of the cotton swabs on one side, hold the handles of 3 cotton swabs in one hand. Using the other hand, rub and rotate rigorously one cotton swab along the inside of each cheek for 30 seconds (1 minute total per swab), ensuring that the entire swab tip has made contact with the cheek to ensure maximum cell collection"
+  },
+  {
+    "img": "@/assets/dnaCollectionSteps/dnaSteps/Collection-Step-8.png",
+    "description": "Remove swab, do not touch swab tip against teeth, lips, or other surfaces; Place the swab upright in a clean glass, ensuring that the end of the swab is not touching anything else"
+  },
+  {
+    "img": "@/assets/dnaCollectionSteps/dnaSteps/Collection-Step-9.png",
+    "description": "Repeat steps 7 and 8 using the rest of the cotton swabs you have prepared earlier"
+  },
+  {
+    "img": "@/assets/dnaCollectionSteps/dnaSteps/Collection-Step-10.png",
+    "description": "Allow the swab a (MINIMUM)-B of 60 minutes to dry. "
+  },
+  {
+    "img": "@/assets/dnaCollectionSteps/dnaSteps/Collection-Step-11.png",
+    "description": "Put the dried swabs (cotton tip side down) directly into the small paper envelope. This will enable the swabs to dry out and help preserve the DNA. Seal the envelope. NEVER place any of the samples in plastic bags or plastic tubes. The samples should be air-dried and placed in paper envelopes and NEVER in any sort of culture media. PLACING THE SAMPLES IN A PLASTIC BAG WILL DESTROY THE SAMPLES!!"
+  },
+  {
+    "img": "@/assets/dnaCollectionSteps/dnaSteps/Collection-Step-12.png",
+    "description": "Write your public key and collection date on the small envelope"
+  },
+  {
+    "img": "@/assets/dnaCollectionSteps/dnaSteps/Collection-Step-13.png",
+    "description": "Place the small envelope into the large envelope for shipping"
+  },
+  {
+    "img": "@/assets/dnaCollectionSteps/dnaSteps/Collection-Step-14.png",
+    "description": "Write down the selected nearby lab’s address on the large envelope and ship it immediately."
+  }
+]

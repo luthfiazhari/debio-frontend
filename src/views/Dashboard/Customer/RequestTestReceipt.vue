@@ -11,7 +11,7 @@
           >
             <b>Request Test Success</b>
           </v-alert>
-          <v-card class="dg-card" elevation="0" outlined>
+          <v-card class="dg-card mb-4" elevation="0" outlined>
             <v-card-title class="px-8">
               <div class="text-h6">Order Receipt</div>
             </v-card-title>
@@ -77,10 +77,46 @@
               </div>
             </v-card-text>
           </v-card>
+
+          <v-alert
+            type="warning"
+            rounded="true"
+            class="rounded-lg"
+            color="primary"
+          >
+            <template v-slot:prepend>
+              <v-icon color="white" class="mr-4">mdi-alert-circle</v-icon>
+            </template>
+            <b>You still need to send your samples!</b>
+          </v-alert>
+
+          <SwabCollectionProccess>
+            
+          </SwabCollectionProccess>
+
+          <DNASampleSendingInstructions
+            v-if="receipts.length > 0"
+            :specimenNumber="specimenNumber"
+            :lab="namaLab"
+            :orderId="orderId"
+            :sourcePage="'order-history'"
+          >
+            <template v-slot:button>
+              <v-btn
+                depressed
+                color="primary"
+                large
+                width="100%"
+                @click="goToHome"
+              >
+                I understand, bring me back to the home page
+              </v-btn>
+            </template>
+          </DNASampleSendingInstructions>
         </v-col>
 
         <v-col cols="12" lg="6" md="6" xl="5">
-          <v-alert
+          <!-- <v-alert
             type="warning"
             rounded="true"
             class="rounded-lg"
@@ -110,7 +146,11 @@
                 I understand, bring me back to the home page
               </v-btn>
             </template>
-          </DNASampleSendingInstructions>
+          </DNASampleSendingInstructions> -->
+
+          <DNASampleCollectionSteps>
+
+          </DNASampleCollectionSteps>
         </v-col>
       </v-row>
     </v-container>
@@ -119,38 +159,45 @@
 
 <script>
 import DNASampleSendingInstructions from "@/components/DNASampleSendingInstructions";
-import cityData from "@/assets/json/city.json";
+// import cityData from "@/assets/json/city.json";
+import DNASampleCollectionSteps from "@/components/DNASampleCollectionSteps"
+import SwabCollectionProccess from "@/components/SwabCollectionProccess"
 
 export default {
   name: "RequestTestSuccess",
   components: {
     DNASampleSendingInstructions,
+    DNASampleCollectionSteps,
+    SwabCollectionProccess,
   },
   data: () => ({
     receipts: [],
     country: "",
     city: "",
+    labName: "",
+    orderId: "asdjklhafhlkaudash"
   }),
   computed: {
     specimenNumber() {
-      const { receipts } = this.$router.history.current.params;
-      return receipts[0].specimenNumber;
+      // const { receipts } = this.$router.history.current.params;
+      // return receipts[0].specimenNumber;
+      return 'asdjksadhasdkhaksh'
     },
-    lab() {
-      const { receipts } = this.$router.history.current.params;
-      return receipts[0].lab;
-    },
+    // lab() {
+    //   const { receipts } = this.$router.history.current.params;
+    //   return receipts[0].lab;
+    // },
   },
   mounted() {
-    const { receipts } = this.$router.history.current.params;
-    if (!receipts) {
-      this.goToHome();
-    }
-    this.receipts = receipts;
-    if (this.lab != null) {
-      this.country = cityData[this.lab.info.country].name;
-      this.city = cityData[this.lab.info.country].divisions[this.lab.info.city];
-    }
+    // const { receipts } = this.$router.history.current.params;
+    // if (!receipts) {
+    //   this.goToHome();
+    // }
+    // this.receipts = receipts;
+    // if (this.lab != null) {
+    //   this.country = cityData[this.lab.info.country].name;
+    //   this.city = cityData[this.lab.info.country].divisions[this.lab.info.city];
+    // }
   },
   methods: {
     isValidIcon(icon) {
