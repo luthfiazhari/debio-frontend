@@ -10,11 +10,11 @@
             <v-card-text class="px-8">
               <v-autocomplete
                 dense
+                key="country"
                 v-model="country"
-                :key="country"
                 :items="countries"
                 item-text="name"
-                item-value="alpha-2"
+                item-value="iso2"
                 @change="onCountryChange"
                 label="Select Country"
                 autocomplete="disabled"
@@ -24,28 +24,28 @@
 
               <v-autocomplete
                 dense
-                v-model="region"
-                :key="region"
-                :items="regions"
-                item-text="1"
-                item-value="0"
-                @change="onRegionChange"
-                label="Select Region"
-                :disabled="country == 'country' || showRequestNoLab"
+                key="state"
+                v-model="state"
+                :items="states"
+                item-text="name"
+                item-value="state_code"
+                @change="onStateChange"
+                label="Select State"
+                :disabled="!country || showRequestNoLab"
                 autocomplete="disabled"
                 outlined
               ></v-autocomplete>
 
               <v-autocomplete
                 dense
+                key="city"
                 v-model="city"
-                :key="city"
                 :items="cities"
-                item-text="1"
-                item-value="0"
+                item-text="name"
+                return-object
                 @change="onCityChange"
                 label="Select City"
-                :disabled="region == 'region' || showRequestNoLab"
+                :disabled="!state || showRequestNoLab"
                 autocomplete="disabled"
                 outlined
               ></v-autocomplete>
@@ -57,80 +57,54 @@
                 item-text="labName"
                 @change="onLabChange"
                 menu-props="auto"
-                :label="
-                  showNoLab ? 'There are no available labs' : 'Select Lab'
-                "
-                :disabled="city == 'city' || showRequestNoLab"
+                :label="noLab"
+                :disabled="!city || showRequestNoLab"
                 autocomplete="disabled"
                 outlined
               >
                 <template slot='item' slot-scope='{ item }'>
-                  <v-list-tile-content>
-                    <v-list-tile-title>
+                  <v-list-item-content>
+                    <v-list-item-title>
                       {{item.labName}}
-                    </v-list-tile-title>
-                    <v-list-tile-sub-title 
+                    </v-list-item-title>
+                    <v-list-item-subtitle
                       class="d-flex justify-start ms-8 grey--text"
                       flat
                     >
                     {{item.address}}
-                    </v-list-tile-sub-title>
-                  </v-list-tile-content>
+                    </v-list-item-subtitle>
+                  </v-list-item-content>
                 </template>
               </v-select>
+              <v-select v-if="showRequestNoLab"
+                dense
+                :items="listCategories"
+                label="Select Test / Category"
+                @change="onCategoryChange"
+                menu-props="auto"
+                autocomplete="disabled"
+                outlined
+              >
+              </v-select>
+              <v-text-field v-if="showSpecify"
+                @input="category"
+                label="Please Specify..."
+                outlined
+              >
+              </v-text-field>
             </v-card-text>
             <div
               class="ml-8 mr-8 mb-8 grey--text text--darken-1"
               v-if="showNoLab"
             >
-              <div v-if="showRequestNoLab">
-                <v-row>
-                  <v-col
-                    cols="12"
-                    lg="12"
-                    md="12"
-                    sm="12"
-                    class="font-weight-bold"
-                  >
-                    Select Product
-                  </v-col>
-                </v-row>
-                <v-row>
-                  <v-col
-                    v-for="item in listProducsNoLab"
-                    :key="item.alias"
-                    cols="12"
-                    lg="4"
-                    md="4"
-                    sm="4"
-                  >
-                    <input
-                      type="checkbox"
-                      :id="item.alias"
-                      :value="item.value"
-                      v-model="requestNoLabItem"
-                      :disabled="isLoadingRequestNoLab"
-                    />
-                    <label class="ml-2" :for="item.alias">{{
-                      item.text
-                    }}</label>
-                  </v-col>
-                </v-row>
+              <div>
+                <b :style="{'color': 'red' }">There are no lab available in your city.</b> <br><br>
+
+                1. You can request a lab to register to DeBio by clicking the "Request a lab" button. <br><br>
+                2. Additionally, you can stake an amount of tokens or regular cirrency(USD), which will be given as an incentive to labs registering in your location. <br><br>
+                3. Labs will use the result of this form, filled-in by you and other DeBio users, to evaluate the demand in the area you designated.
+
               </div>
-              <div v-else>
-                If there are no labs in your area, you can express your interest
-                for lab services by making a request using this form. Labs can
-                use the requests to gauge the demand for services in the area.
-              </div>
-              <DialogAlert
-                :show="dialogAlert"
-                :btnText="alertTextBtn"
-                :textAlert="alertTextAlert"
-                :imgPath="alertImgPath"
-                :imgWidth="imgWidth"
-                @toggle="dialogAlert = $event"
-                @close="actionAlert()"
-              ></DialogAlert>
             </div>
           </v-card>
         </v-col>
@@ -169,7 +143,7 @@
         </v-col>
       </v-row>
 
-      <div class="mt-5" v-if="showNoLab">
+      <div class="mt-5">
         <v-row>
           <v-col v-if="isLoadingRequestNoLab" cols="12" lg="12" md="12" sm="12">
             <v-progress-linear
@@ -185,21 +159,11 @@
               depressed
               color="primary"
               large
-              :disabled="isLoadingRequestNoLab || requestNoLabItem.length == 0"
+              :disabled="disableSubmitButton"
               width="100%"
-              @click="sendRequestNoLab"
+              @click="showingStakingDialog"
             >
               Submit
-            </v-btn>
-            <v-btn
-              v-else
-              depressed
-              color="primary"
-              large
-              width="100%"
-              @click="showRequestNoLab = true"
-            >
-              Request a Lab
             </v-btn>
           </v-col>
           <v-col cols="12" lg="4" md="4" sm="4">
@@ -210,14 +174,30 @@
               large
               width="100%"
               :disabled="isLoadingRequestNoLab"
-              @click="showRequestNoLab = false"
+              @click="actionAlert()"
             >
               Cancel
             </v-btn>
           </v-col>
+
+            <StakingDialog 
+              :show="showStakingDialog"
+              @toggle="showStakingDialog = $event"
+              @close="actionAlert()"           
+              />
+
+            <DialogAlert
+              :show="dialogAlert"
+              btn-text="Continue"
+              text-alert="Your request has been submitted! We have sent details about your request."
+              img-path="success.png"
+              img-width="50"
+              @toggle="dialogAlert = $event"
+              @close="actionAlert()"
+            ></DialogAlert>
         </v-row>
       </div>
-
+      
       <div v-if="isLoadingProducts" class="d-flex justify-center mt-10">
         <v-progress-circular
           :size="50"
@@ -226,92 +206,121 @@
         ></v-progress-circular>
       </div>
 
-      <template v-if="labAccount && !isLoadingProducts">
-        <v-row class="mt-4">
-          <v-col cols="12">
-            <div class="px-2">
-              <div class="text-h5 secondary--text text--lighten-2">
-                <b>{{ labAccount.info.name }}</b>
+      <template v-if="labAccount && !isLoadingProducts && !showRequestNoLab">
+          <v-row class="mt-4">
+            <v-col cols="12">
+              <div class="px-2">
+                <div class="text-h5 secondary--text text--lighten-2">
+                  <b>{{ labAccount.info.name }}</b>
+                </div>
               </div>
-            </div>
-          </v-col>
-        </v-row>
-
-        <v-row class="mt-2">
-          <v-col cols="12" md="8">
-            <div class="text-h6 px-2">
-              <b>DNA Sample Collection Requirements</b>
-            </div>
-          </v-col>
-        </v-row>
-
-        <v-row>
-          <v-col cols="12" md="8">
-            <DnaCollectionRequirements />
-          </v-col>
-        </v-row>
-
-        <v-row class="mt-2">
-          <v-col cols="12">
-            <div class="px-2">
-              <div class="text-h6">
-                <b>Select Product</b>
+            </v-col>
+          </v-row>
+        
+          <v-row class="mt-2">
+            <v-col cols="12" md="8">
+              <div class="text-h6 px-2">
+                <b>DNA Sample Collection Requirements</b>
               </div>
-            </div>
-          </v-col>
-        </v-row>
+            </v-col>
+          </v-row>
 
-        <v-row class="pt-1">
-          <v-col
-            v-for="product in products"
-            :key="product.serviceData.id"
-            cols="12"
-            xl="4"
-            lg="4"
-            md="6"
-            :class="$vuetify.breakpoint.smAndDown ? 'py-0' : 'py-1'"
-          >
-            <SelectableMenuCard
-              :icon="product.icon"
-              :title="product.serviceName"
-              :sub-title="product.serviceData.info.description"
-              :hover-text="
-                product.serviceData.info.long_description
-                  ? product.serviceData.info.long_description
-                  : product.serviceData.info.description
-              "
-              :is-selected="isProductSelected(product)"
-              :disabled="isProductDisabled(product)"
-              @click="selectOneProduct(product)"
-            >
-              <template v-slot:footer>
-                <span class="text-h6">
-                  {{ product.totalPrice }}
-                </span>
-                <span class="primary--text text-caption">
-                  {{ product.currency }}
-                </span>
-              </template>
-            </SelectableMenuCard>
-          </v-col>
-        </v-row>
+          <v-row>
+            <v-col cols="12" md="8">
+              <DnaCollectionRequirements />
+            </v-col>
+          </v-row>
 
-        <v-row justify="center" class="mt-2">
-          <v-col cols="12">
-            <v-btn
-              depressed
-              color="primary"
-              x-large
-              width="100%"
-              :disabled="selectedProducts.length == 0"
-              @click="onContinue"
-              height="64"
+          <v-row class="mt-2">
+            <v-col cols="12">
+              <div class="px-2">
+                <div class="text-h6">
+                  <b>Select Product</b>
+                </div>
+              </div>
+            </v-col>
+          </v-row>
+
+          <v-row class="pt-1">
+            <v-col
+              v-for="product in products"
+              :key="product.serviceData.id"
+              cols="12"
+              xl="4"
+              lg="4"
+              md="6"
+              :class="$vuetify.breakpoint.smAndDown ? 'py-0' : 'py-1'"
             >
-              Continue
-            </v-btn>
-          </v-col>
-        </v-row>
+              <SelectableMenuCard
+                :icon="product.icon"
+                :title="product.serviceName"
+                :sub-title="product.serviceData.info.description"
+                :hover-text="
+                  product.serviceData.info.long_description
+                    ? product.serviceData.info.long_description
+                    : product.serviceData.info.description
+                "
+                :is-selected="isProductSelected(product)"
+                :disabled="isProductDisabled(product)"
+                @click="selectOneProduct(product)"
+              >
+                <template v-slot:footer>
+                  <span class="text-h6">
+                    {{ product.totalPrice }}
+                  </span>
+                  <span class="primary--text text-caption">
+                    {{ product.currency }}
+                  </span>
+                </template>
+              </SelectableMenuCard>
+            </v-col>
+            <v-col
+              cols="12"
+              xl="4"
+              lg="4"
+              md="6"
+              :class="$vuetify.breakpoint.smAndDown ? 'py-0' : 'py-1'"
+            >
+              <SelectableMenuCard
+                icon="mdi-file-find"
+                title="Request a service"
+                sub-title="Could not find a service? Click here to request."
+                @click="showRequestNoLab = true"
+              >
+              </SelectableMenuCard>
+            </v-col>
+          </v-row>
+
+          <v-row justify="center" class="mt-2">
+            <v-col cols="12">
+              <v-btn
+                depressed
+                color="primary"
+                x-large
+                width="100%"
+                :disabled="selectedProducts.length == 0"
+                @click="onContinue"
+                height="64"
+              >
+              Checkout Order
+              </v-btn>
+            </v-col>
+          </v-row>
+
       </template>
+
+
+      <ServiceDialog
+        :show="dialogAlert"
+        :icon="icon"
+        :serviceName="serviceName"
+        :description="description"
+        :duration="duration"
+        :downloadPath="downloadPath"
+        :serviceId="serviceId"
+        @toggle="dialogAlert = $event"
+        @close="actionAlert()"
+      ></ServiceDialog>
     </v-container>
   </div>
 </template>
@@ -321,187 +330,146 @@ import _ from "lodash";
 import { mapState, mapMutations } from "vuex";
 import SelectableMenuCard from "@/components/SelectableMenuCard";
 import DnaCollectionRequirements from "./DnaCollectionRequirements";
-import countryData from "@/assets/json/country.json";
-import cityData from "@/assets/json/city.json";
+import { getLocations, getStates, getCities } from "@/lib/location"
+import DialogAlert from '@/components/Dialog/DialogAlert'
 import {
   queryLabsByCountryRegionCity,
   queryLabsById,
 } from "@/lib/polkadotProvider/query/labs";
 import { queryServicesById } from "@/lib/polkadotProvider/query/services";
-import DialogAlert from "@/components/Dialog/DialogAlert";
+import StakingDialog from "./StakingDialog.vue"
+import ServiceDialog from '@/components/Dialog/ServiceDialog'
+import categories from '@/constants/categories'
+import serviceHandler from "@/lib/metamask/mixins/serviceHandler"
 
 export default {
-  name: "RequestTest",
+  name: "FindLab",
+  mixins: [serviceHandler],
+
   components: {
     SelectableMenuCard,
     DnaCollectionRequirements,
     DialogAlert,
+    StakingDialog,
+    ServiceDialog
   },
+
   data: () => ({
-    country: "country",
-    city: "city",
-    region: "region",
+    country: "",
+    state: "",
+    city: "",
     labAccount: "",
     selectedProducts: [],
     isLoadingProducts: false,
     countries: [],
+    category: "",
+    states: [],
     cities: [],
-    regions: [],
     labs: [],
     products: [],
     coinName: "",
-    listProducsNoLab: [],
+    listCategories: [],
     showRequestNoLab: false,
     showNoLab: false,
-    requestNoLabItem: [],
+    showSpecify: false,
     isLoadingRequestNoLab: false,
     dialogAlert: false,
-    alertTextBtn: "",
-    alertImgPath: "warning.png",
-    alertTextAlert: "",
-    imgWidth: "50",
     statusSendReqNoLab: false,
+    showStakingDialog: false,
+    icon: "",
+    serviceName: "",
+    description: "",
+    duration: "",
+    durationType: "",
+    downloadPath: "",
+    serviceId: ""
   }),
-  async mounted() {
-    this.coinName = this.configApp.tokenName;
-    this.listProducsNoLab = [
-      {
-        text: "Genetic Traits",
-        value: "Genetic Traits",
-        alias: "gts",
-      },
-      {
-        text: "Skincare",
-        value: "Skincare",
-        alias: "skin",
-      },
-      {
-        text: "Cancer Diagnosis",
-        value: "Cancer Diagnosis",
-        alias: "cds",
-      },
-      {
-        text: "Suplement",
-        value: "Suplement",
-        alias: "spt",
-      },
-      {
-        text: "Thalasemia Test",
-        value: "Thalasemia Test",
-        alias: "ttt",
-      },
-      {
-        text: "Klinefelter syndrome",
-        value: "Klinefelter syndrome",
-        alias: "ksd",
-      },
-      {
-        text: "Ancestry",
-        value: "Ancestry",
-        alias: "anc",
-      },
-      {
-        text: "Crohn's disease",
-        value: "Crohn's disease",
-        alias: "cde",
-      },
-      {
-        text: "Anemia",
-        value: "Anemia",
-        alias: "ane",
-      },
-    ];
-    await this.getCountries();
-  },
+
   computed: {
     ...mapState({
       api: (state) => state.substrate.api,
       wallet: (state) => state.substrate.wallet,
       configApp: (state) => state.auth.configApp,
     }),
-    citiesSelection() {
-      return this.cities
-        .filter((c) => c.country == this.country)
-        .map((c) => ({ value: c.city, text: c.city, country: c.country }));
+
+    noLab() {
+      if (this.showNoLab) return 'There are no available lab'
+
+      return 'Select Test Lab'
     },
-    labsSelection() {
-      return this.labs
-        .filter((lab) => lab.country == this.country && lab.city == this.city)
-        .map((lab) => ({ value: lab.labAccount, text: lab.name }));
-    },
-    productsSelection() {
-      return this.products.map((prod) => {
-        try {
-          const additionalData = JSON.parse(prod.additionalData);
-          return { ...prod, ...additionalData };
-        } catch (err) {
-          return prod;
-        }
-      });
-    },
-    selectedLab() {
-      if (!this.labAccount) {
-        return;
-      }
-      return this.labs.filter((l) => l.labAccount == this.labAccount)[0];
-    },
+
+    disableSubmitButton() {
+      return this.isLoadingRequestNoLab || this.category.length == 0
+    }
   },
+
+  async mounted() {
+    this.coinName = this.configApp.tokenName;
+    await this.getCountries();
+    this.listCategories = categories
+  },
+
   methods: {
     ...mapMutations({
       setLabToRequest: "testRequest/SET_LAB",
       setProductsToRequest: "testRequest/SET_PRODUCTS",
+      setCategory: "lab/SET_CATEGORY"
     }),
-    async getCountries() {
-      this.showNoLab = false;
-      this.countries = countryData;
-    },
-    onCountryChange(selectedCountry) {
-      this.showNoLab = false;
-      this.regions = [];
-      this.region = "region";
-      this.city = "city";
-      this.cities = [];
-      this.country = selectedCountry;
 
-      this.regions = Object.entries(cityData[this.country].divisions);
-    },
-    onRegionChange(selectedRegion) {
+    async getCountries() {
+      const { data:
+        { data }
+      } = await this.dispatch(getLocations)
       this.showNoLab = false;
-      this.city = "city";
-      this.cities = [];
-      this.region = selectedRegion;
-      this.cities = Object.entries(cityData[this.country].divisions);
+      this.countries = data;
     },
-    onCityChange(selectedCity) {
+
+    async onCountryChange(selectedCountry) {
+      const { data:
+        { data }
+      } = await this.dispatch(getStates, selectedCountry)
       this.showNoLab = false;
-      this.city = selectedCity;
-      this.getLabs();
+      this.states = data;
+      this.country = selectedCountry;
     },
+
+    async onStateChange(selectedState) {
+      const { data:
+        { data }
+      } = await this.dispatch(getCities, this.country, selectedState)
+      this.cities = data;
+      this.state = selectedState;
+      this.showNoLab = false;
+    },
+
+    async onCityChange({ name }) {
+      this.showNoLab = false;
+      this.city = name;
+      await this.getLabs();
+    },
+    
     async getLabs() {
       if (!this.cities) {
         return;
       }
-
-      // this.country = "WL";
-      // this.city = "WL";
-      // this.region = "WL";
       this.labAccount = "";
       this.labs = [];
       this.products = [];
       const listLabID = await queryLabsByCountryRegionCity(
         this.api,
-        this.country + "-" + this.region,
-        this.city
+        this.country + "-" + this.country + "-" + this.state,
+        this.country + "-" + this.state,
       );
+
       if (listLabID) {
         for (let i = 0; i < listLabID.length; i++) {
-          const detaillab = await queryLabsById(this.api, listLabID[i]);
-
-          if (detaillab) {
-            const labName = detaillab.info.name;
-            const accountId = detaillab.account_id;
-            const address = detaillab.info.address;
-            const labData = detaillab;
+          const detailLab = await queryLabsById(this.api, listLabID[i]);
+          let labId = listLabID[i-1]
+          if (detailLab && detailLab.account_id != labId ) {
+            const labName = detailLab.info.name;
+            const accountId = detailLab.account_id;
+            const address = detailLab.info.address;
+            const labData = detailLab;
 
             const lab = {
               accountId,
@@ -518,13 +486,14 @@ export default {
         this.showNoLab = true;
         this.showRequestNoLab = false;
         this.isLoadingRequestNoLab = false;
-        this.requestNoLabItem = [];
       }
     },
+
     async onLabChange(labAccount) {
       this.labAccount = labAccount;
       await this.getLabProducts();
     },
+
     async getLabProducts() {
       this.isLoadingProducts = true;
       this.products = [];
@@ -594,8 +563,8 @@ export default {
         this.products = [];
       }
       this.isLoadingProducts = false;
-      console.log(this.products, '<====== productsss')
     },
+
     isProductSelected(product) {
       return (
         this.selectedProducts.filter(
@@ -603,23 +572,25 @@ export default {
         ).length > 0
       );
     },
+
     isProductDisabled(product) {
       if (this.selectedProducts.length == 0) {
         return false;
       }
       return this.selectedProducts[0].serviceData.id != product.serviceData.id;
     },
+
     selectProduct(product) {
       // deselect
       if (_.includes(this.selectedProducts, product)) {
         this.selectedProducts = this.selectedProducts.filter(
           (p) => p.serviceData.id != product.serviceData.id
         );
-        return;
       }
       // select
       this.selectedProducts = [...this.selectedProducts, product];
     },
+
     selectOneProduct(product) {
       if (this.selectedProducts.length == 0) {
         this.selectedProducts = [product];
@@ -632,48 +603,52 @@ export default {
         this.selectedProducts = [];
       }
     },
+
     onContinue() {
+      if (this.selectedProducts[0].serviceData.info.expected_duration.duration_type == "WorkingDays") {
+        this.durationType = "working days"
+      } else {
+        this.durationType = this.selectedProducts[0].serviceData.info.expected_duration.duration_type
+      }
+      this.icon = this.selectedProducts[0].icon
+      this.serviceName = this.selectedProducts[0].serviceName
+      this.description = this.selectedProducts[0].serviceData.info.description
+      this.duration = `${this.selectedProducts[0].serviceData.info.expected_duration.duration} ${this.durationType}`
+      this.downloadPath = this.selectedProducts[0].serviceData.info.test_result_sample
+      this.serviceId = this.selectedProducts[0].serviceData.id
+      
+      this.dialogAlert = true
+
       this.setLabToRequest(this.labAccount);
       this.setProductsToRequest(this.selectedProducts);
-      this.$router.push({ name: "request-test-checkout" });
     },
+
+    showingStakingDialog() {
+      this.showStakingDialog = true
+    },
+
     sendRequestNoLab() {
-      this.isLoadingRequestNoLab = true;
-
-      this.alertTextBtn = "Continue";
-      this.alertImgPath = "success.png";
-      this.statusSendReqNoLab = true;
-      this.alertTextAlert =
-        "Your request has been submitted! We have sent details about your request.";
-      this.dialogAlert = true;
-
-      this.$store.dispatch("substrate/addAnyNotification", {
-        address: this.wallet.address,
-        dataAdd: {
-          message: "Your request has been submitted!",
-          data: null,
-          route: "",
-          params: "",
-        },
-        role: "customer",
-      });
-
-      this.isLoadingRequestNoLab = false;
+      this.showStakingDialog = false
     },
+
     actionAlert() {
       if (this.statusSendReqNoLab) {
         this.showNoLab = false;
         this.showRequestNoLab = false;
         this.isLoadingRequestNoLab = false;
-        this.requestNoLabItem = [];
         this.statusSendReqNoLab = false;
-        this.regions = [];
-        this.region = "region";
         this.city = "city";
         this.country = "country";
         this.cities = [];
       }
       this.dialogAlert = false;
+    },
+    onCategoryChange(category) {
+      this.category = category
+      if (category == "Other") {
+        this.showSpecify = true
+      }
+      this.setCategory(category)
     },
   },
 };

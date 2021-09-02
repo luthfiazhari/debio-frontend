@@ -16,6 +16,7 @@
                 :ipfsUrl="getFileIpfsUrl(file)"
                 :view-only="submitted"
                 @edit="onEditClick('genome')"
+                @delete="onFileDelete('genome')"
               />
             </div>
           </v-col>
@@ -61,6 +62,7 @@
                 :ipfsUrl="getFileIpfsUrl(file)"
                 :view-only="submitted"
                 @edit="onEditClick('report')"
+                @delete="onFileDelete('report')"
               />
             </div>
           </v-col>
@@ -152,6 +154,7 @@
 
 <script>
 import { mapGetters, mapState } from 'vuex'
+import serviceHandler from "@/mixins/serviceHandler"
 import FileCard from './FileCard'
 import ipfsWorker from '@/web-workers/ipfs-worker'
 import cryptWorker from '@/web-workers/crypt-worker'
@@ -163,6 +166,8 @@ import Dialog from '@/components/Dialog'
 import Button from '@/components/Button'
 import { submitTestResult, processDnaSample } from '@/lib/polkadotProvider/command/geneticTesting'
 import { queryDnaTestResults } from "@/lib/polkadotProvider/query/geneticTesting"
+import localStorage from "@/lib/local-storage"
+
 
 export default {
   name: 'ProcessSpecimen',
@@ -172,6 +177,7 @@ export default {
     Dialog,
     Button
   },
+  mixins: [serviceHandler],
   props: {
     orderId: String,
     specimenNumber: String,
@@ -189,7 +195,6 @@ export default {
     reportLink: "",
     resultLink: "",
     submitted: false,
-    isLoading: false,
     isProcessed: false,
     files: {
       genome: [],
@@ -227,18 +232,23 @@ export default {
       api: 'substrate/getAPI',
       pair: 'substrate/wallet',
     }),
+
     ...mapState({
       mnemonic: state => state.substrate.mnemonicData.mnemonic
     }),
+
     disableRejectButton(){
       return this.genomeSucceed && this.reportSucceed
     },
+
     disableSendButton(){
       return !this.disableRejectButton
     },
+    
     hasGenomeFile() {
       return this.files.genome.length > 0
     },
+
     hasReportFile() {
       return this.files.report.length > 0
     }
@@ -267,22 +277,27 @@ export default {
         this.submitted = true
       }
     },
+
     uploadGenome() {
       this.$refs.encryptUploadGenome.click()
     },
+
     uploadReport() {
       this.$refs.encryptUploadReport.click()
     },
+
     /**
      * @returns {String} The first ipfs path (a file has multiple ipfs path, because a file may be chunked)
      */
     getFileIpfsPath(file) {
       return file.ipfsPath[0].data.path
     },
+
     getFileIpfsUrl(file) {
       const path = this.getFileIpfsPath(file)
       return `https://ipfs.io/ipfs/${path}`
     },
+
     async submitTestResult(callback = ()=>{}) {
       let genomeLink = ""
       if(this.files.genome.length){
@@ -294,7 +309,8 @@ export default {
         reportLink = this.getFileIpfsUrl(this.files.report[0])      
       }
 
-      await submitTestResult(
+      await this.dispatch(
+        submitTestResult,
         this.api,
         this.pair,
         this.specimenNumber,
@@ -306,20 +322,23 @@ export default {
         callback
       )
     },
+
     sendTestResult() {
-      this.isLoading = true
       this.submitTestResult(async () => {
-        await fulfillOrder(
+        await this.dispatch(
+          fulfillOrder,
           this.api,
           this.pair,
           this.orderId,
         )
-        this.processDnaSample()
+        this.resultReady()
       })
     },
-    async processDnaSample() {
+    
+    async resultReady() {
       this.isProcessing = true
-      await processDnaSample(
+      await this.dispatch(
+        processDnaSample,
         this.api,
         this.pair,
         this.specimenNumber,
@@ -331,6 +350,7 @@ export default {
           this.submitted = true
         }
       )
+      this.sendingNotification()
     },
 
     addFileUploadEventListener(fileInputRef, fileType) {
@@ -343,6 +363,7 @@ export default {
         const file = this.files[0]
         file.fileType = fileType // attach fileType to file, because fileType is not accessible in fr.onload scope
         const fr = new FileReader()
+        if (file.type === "application/pdf") fr.readAsDataURL(file)
         fr.onload = async function() {
           try {
             // Encrypt
@@ -392,6 +413,7 @@ export default {
         fr.readAsText(file)
       })
     },
+
     encrypt({ text, fileType, fileName }) {
       const context = this
       this.loadingStatus[fileType] = 'Encrypting'
@@ -432,6 +454,7 @@ export default {
         }
       })
     },
+
     upload({ encryptedFileChunks, fileName, fileType }) {
       this.loadingStatus[fileType] = 'Uploading'
       const chunkSize = 10 * 1024 * 1024 // 10 MB
@@ -475,25 +498,58 @@ export default {
         }
       })
     },
+
     onEditClick(fileType) {
-      if (fileType == 'genome') { this.uploadGenome() }
-      if (fileType == 'report') { this.uploadReport() }
+      if (fileType == 'genome') this.uploadGenome()
+      if (fileType == 'report') this.uploadReport()
     },
-    onFileDelete(file) {
-      const fileType = file.fileType
-      const ipfsPath = file.ipfsPath[0].data.path
 
-      const tempFiles = this.files[fileType].filter(file => {
-        return file.ipfsPath[0].data.path != ipfsPath
-      })
-
-      this.files = {...this.files, [fileType]: tempFiles }
-
-      specimenFilesTempStore.set(this.specimen.number, this.files)
-
-      if (this.files.genome.length == 0 && this.files.report.length == 0) {
-        specimenFilesTempStore.remove(this.specimen.number)
+    onFileDelete(fileType) {
+      this.files[fileType] = []
+      if (fileType == 'genome') {
+        this.genomeSucceed = false
+        this.$refs.encryptUploadGenome.value = null
       }
+      if (fileType == 'report') {
+        this.reportSucceed = false
+        this.$refs.encryptUploadReport.value = null
+      }
+    },
+
+    sendingNotification() {
+      const address = localStorage.getAddress()
+      const storageName = "LOCAL_NOTIFICATION_BY_ADDRESS_" + address + "_" + "customer"
+      const listNotificationJson = localStorage.getLocalStorageByName(storageName)
+
+      let listNotification = []
+      if (listNotificationJson != null && listNotificationJson != "") {
+        listNotification = JSON.parse(listNotificationJson)
+      }
+
+      const dateSet = new Date()
+      const timestamp = dateSet.getTime().toString()
+      const notifDate = dateSet.toLocaleString("en-US", {
+        weekday: "short",
+        day: "numeric", 
+        year: "numeric",
+        month: "long", 
+        hour: "numeric",
+        minute: "numeric",
+      });
+
+      const notification = {
+        message: "Congrats! You got 5 DBIO!",
+        timestamp: timestamp,
+        data: "",
+        route: "result-test",
+        params: "",
+        read: false,
+        notifDate: notifDate,
+      }
+
+      listNotification.push(notification)
+      localStorage.setLocalStorageByName(storageName, JSON.stringify(listNotification));
+      listNotification.reverse();
     },
   },
 }

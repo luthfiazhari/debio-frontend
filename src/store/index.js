@@ -5,6 +5,9 @@ import ethereum from './ethereum'
 import metamask from './metamask'
 import testRequest from './testRequest'
 import substrate from './substrate'
+import lab from './lab'
+import feedback from './feedback'
+
 
 
 Vue.use(Vuex)
@@ -17,6 +20,8 @@ export default new Vuex.Store({
     metamask,
     testRequest,
     substrate,
+    lab,
+    feedback,
   },
   state: {
   },

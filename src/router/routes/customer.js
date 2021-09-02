@@ -15,11 +15,27 @@ const customerRoutes = [{
           { text: "Request Test", disabled: false, route: { name: "request-test" } },
           { text: "Test Results", disabled: false, route: { name: "all-test-result" } },
           { text: "Order History", disabled: false, route: { name: "order-history" } },
-          { text: "EMR", disabled: false, route: { name: "documents" } },
+          { text: "EMR", subText: "(Electronic Medical Record)", disabled: false, route: { name: "documents" } },
           { text: "Customer Care", href: "https://docs.debio.network/getting-started" },
         ]
       },
       component: () => import(/* webpackChunkName */ '../../views/Dashboard/Customer/Home')
+    },
+    {
+      path: '/customer/service-request',
+      name: 'service-request',
+      meta: {
+        pageHeader: 'Service Request',
+        drawerButtons: [
+          { text: "Dashboard", disabled: false, route: { name: "customer-home" } },
+          { text: "Request Test", disabled: false, route: { name: "request-test" } },
+          { text: "Test Results", disabled: false, route: { name: "all-test-result" } },
+          { text: "Order History", active: true, disabled: false, route: { name: "order-history" } },
+          { text: "EMR", disabled: false, route: { name: "documents" } },
+          { text: "Customer Care", href: "https://docs.debio.network/getting-started" },
+        ]
+      },
+      component: () => import(/* webpackChunkName */ '../../views/Dashboard/Customer/RequestTest/ServiceRequest.vue')
     },
     {
       path: '/customer/order-history',
@@ -31,7 +47,7 @@ const customerRoutes = [{
           { text: "Request Test", disabled: false, route: { name: "request-test" } },
           { text: "Test Results", disabled: false, route: { name: "all-test-result" } },
           { text: "Order History", active: true, disabled: false, route: { name: "order-history" } },
-          { text: "EMR", disabled: false, route: { name: "documents" } },
+          { text: "EMR", subText: "(Electronic Medical Record)", disabled: false, route: { name: "documents" } },
           { text: "Customer Care", href: "https://docs.debio.network/getting-started" },
         ]
       },
@@ -51,7 +67,7 @@ const customerRoutes = [{
           { text: "Request Test", disabled: false, route: { name: "request-test" } },
           { text: "Test Results", disabled: false, route: { name: "all-test-result" } },
           { text: "Order History", active: true, disabled: false, route: { name: "order-history" } },
-          { text: "EMR", disabled: false, route: { name: "documents" } },
+          { text: "EMR", subText: "(Electronic Medical Record)", disabled: false, route: { name: "documents" } },
           { text: "Customer Care", href: "https://docs.debio.network/getting-started" },
         ]
       },
@@ -73,7 +89,7 @@ const customerRoutes = [{
           { text: "Request Test", disabled: false, route: { name: "request-test" } },
           { text: "Test Results", disabled: false, route: { name: "all-test-result" } },
           { text: "Order History", active: true, disabled: false, route: { name: "order-history" } },
-          { text: "EMR", disabled: false, route: { name: "documents" } },
+          { text: "EMR", subText: "(Electronic Medical Record)", disabled: false, route: { name: "documents" } },
           { text: "Customer Care", href: "https://docs.debio.network/getting-started" },
         ]
       },
@@ -94,7 +110,7 @@ const customerRoutes = [{
           { text: "Request Test", disabled: false, route: { name: "request-test" } },
           { text: "Test Results", active: true, disabled: false, route: { name: "all-test-result" } },
           { text: "Order History", disabled: false, route: { name: "order-history" } },
-          { text: "EMR", disabled: false, route: { name: "documents" } },
+          { text: "EMR", subText: "(Electronic Medical Record)", disabled: false, route: { name: "documents" } },
           { text: "Customer Care", href: "https://docs.debio.network/getting-started" },
         ]
       },
@@ -114,7 +130,7 @@ const customerRoutes = [{
           { text: "Request Test", active: true, disabled: false, route: { name: "request-test" } },
           { text: "Test Results", disabled: false, route: { name: "all-test-result" } },
           { text: "Order History", disabled: false, route: { name: "order-history" } },
-          { text: "EMR", disabled: false, route: { name: "documents" } },
+          { text: "EMR", subText: "(Electronic Medical Record)", disabled: false, route: { name: "documents" } },
           { text: "Customer Care", href: "https://docs.debio.network/getting-started" },
         ]
       },
@@ -124,21 +140,86 @@ const customerRoutes = [{
       path: '/customer/request-test/find-lab',
       name: 'find-lab',
       meta: {
-        pageHeader: 'Find a Lab',
+        pageHeader: 'Find Lab',
         breadcrumbs: [
-          { text: 'Request a Test', href: '/customer/request-test' },
+          { text: 'Request Test', href: '/customer/request-test' },
+          { text: 'Find Lab', href: '/customer/request-test/find-lab' },
         ],
         drawerButtons: [
           { text: "Dashboard", disabled: false, route: { name: "customer-home" } },
           { text: "Request Test", active: true, disabled: false, route: { name: "request-test" } },
           { text: "Test Results", disabled: false, route: { name: "all-test-result" } },
           { text: "Order History", disabled: false, route: { name: "order-history" } },
-          { text: "EMR", disabled: false, route: { name: "documents" } },
+          { text: "EMR", subText: "(Electronic Medical Record)", disabled: false, route: { name: "documents" } },
           { text: "Customer Care", href: "https://docs.debio.network/getting-started" },
         ]
       },
       component: () => import(/* webpackChunkName */ '../../views/Dashboard/Customer/RequestTest/FindLab')
     },
+    {
+      path: '/customer/request-test/find-test',
+      name: 'find-test',
+      meta: {
+        pageHeader: 'Find Test',
+        breadcrumbs: [
+          { text: 'Request Test', href: '/customer/request-test' },
+          { text: 'Find Test', href: '/customer/request-test/find-test' },
+        ],
+        drawerButtons: [
+          { text: "Dashboard", disabled: false, route: { name: "customer-home" } },
+          { text: "Request Test", active: true, disabled: false, route: { name: "request-test" } },
+          { text: "Test Results", disabled: false, route: { name: "all-test-result" } },
+          { text: "Order History", disabled: false, route: { name: "order-history" } },
+          { text: "EMR", subText: "(Electronic Medical Record)", disabled: false, route: { name: "documents" } },
+          { text: "Customer Care", href: "https://docs.debio.network/getting-started" },
+        ]
+      },
+      component: () => import(/* webpackChunkName */ '../../views/Dashboard/Customer/RequestTest/FindTest')
+    },
+    {
+      path: '/customer/request-test/find-test/select-category',
+      name: 'select-category',
+      meta: {
+        pageHeader: 'Select your service category',
+        breadcrumbs: [
+          { text: 'Request Test', href: '/customer/request-test' },
+          { text: 'Find Test', href: '/customer/request-test/find-test' },
+          { text: 'Select Category', href: '/customer/request-test/find-test/select-category' },
+        ],
+        drawerButtons: [
+          { text: "Dashboard", disabled: false, route: { name: "customer-home" } },
+          { text: "Request Test", active: true, disabled: false, route: { name: "request-test" } },
+          { text: "Test Results", disabled: false, route: { name: "all-test-result" } },
+          { text: "Order History", disabled: false, route: { name: "order-history" } },
+          { text: "EMR", subText: "(Electronic Medical Record)", disabled: false, route: { name: "documents" } },
+          { text: "Customer Care", href: "https://docs.debio.network/getting-started" },
+        ]
+      },
+      component: () => import(/* webpackChunkName */ '../../views/Dashboard/Customer/RequestTest/SelectCategory')
+    },
+    {
+      path: '/customer/request-test/find-test/select-category/select-lab',
+      name: 'select-lab',
+      meta: {
+        pageHeader: 'Select Lab',
+        breadcrumbs: [
+          { text: 'Request Test', href: '/customer/request-test' },
+          { text: 'Find Test', href: '/customer/request-test/find-test' },
+          { text: 'Select Category', href: '/customer/request-test/find-test/select-category' },
+          { text: 'Select Lab', href: '/customer/request-test/find-test/select-category/select-lab' },
+        ],
+        drawerButtons: [
+          { text: "Dashboard", disabled: false, route: { name: "customer-home" } },
+          { text: "Request Test", active: true, disabled: false, route: { name: "request-test" } },
+          { text: "Test Results", disabled: false, route: { name: "all-test-result" } },
+          { text: "Order History", disabled: false, route: { name: "order-history" } },
+          { text: "EMR", subText: "(Electronic Medical Record)", disabled: false, route: { name: "documents" } },
+          { text: "Customer Care", href: "https://docs.debio.network/getting-started" },
+        ]
+      },
+      component: () => import(/* webpackChunkName */ '../../views/Dashboard/Customer/RequestTest/SelectLab')
+    },
+
     {
       path: '/customer/request-test/checkout',
       name: 'request-test-checkout',
@@ -153,7 +234,7 @@ const customerRoutes = [{
           { text: "Request Test", active: true, disabled: false, route: { name: "request-test" } },
           { text: "Test Results", disabled: false, route: { name: "all-test-result" } },
           { text: "Order History", disabled: false, route: { name: "order-history" } },
-          { text: "EMR", disabled: false, route: { name: "documents" } },
+          { text: "EMR", subText: "(Electronic Medical Record)", disabled: false, route: { name: "documents" } },
           { text: "Customer Care", href: "https://docs.debio.network/getting-started" },
         ]
       },
@@ -175,7 +256,7 @@ const customerRoutes = [{
           { text: "Request Test", active: true, disabled: false, route: { name: "request-test" } },
           { text: "Test Results", disabled: false, route: { name: "all-test-result" } },
           { text: "Order History", disabled: false, route: { name: "order-history" } },
-          { text: "EMR", disabled: false, route: { name: "documents" } },
+          { text: "EMR", subText: "(Electronic Medical Record)", disabled: false, route: { name: "documents" } },
           { text: "Customer Care", href: "https://docs.debio.network/getting-started" },
         ]
       },
@@ -195,7 +276,7 @@ const customerRoutes = [{
           { text: "Request Test", disabled: false, route: { name: "request-test" } },
           { text: "Test Results", active: true, disabled: false, route: { name: "all-test-result" } },
           { text: "Order History", disabled: false, route: { name: "order-history" } },
-          { text: "EMR", disabled: false, route: { name: "documents" } },
+          { text: "EMR", subText: "(Electronic Medical Record)", disabled: false, route: { name: "documents" } },
           { text: "Customer Care", href: "https://docs.debio.network/getting-started" },
         ]
       },
@@ -211,11 +292,11 @@ const customerRoutes = [{
           { text: 'Genome Files', disabled: true },
         ],
         drawerButtons: [
-          { text: "Dashboard", disabled: false },
+          { text: "Dashboard", disabled: false, route: { name: "customer-home" } },
           { text: "Request Test", disabled: true },
           { text: "Test Results", disabled: true },
           { text: "Order History", disabled: true },
-          { text: "EMR", disabled: false, route: { name: "documents" } },
+          { text: "EMR", subText: "(Electronic Medical Record)", disabled: false, route: { name: "documents" } },
           { text: "Customer Care", href: "https://docs.debio.network/getting-started" },
         ]
       },
@@ -231,7 +312,7 @@ const customerRoutes = [{
           { text: "Request Test", disabled: false, route: { name: "request-test" } },
           { text: "Test Results", disabled: false, route: { name: "all-test-result" } },
           { text: "Order History", disabled: false, route: { name: "order-history" } },
-          { text: "EMR", active: true, disabled: false, route: { name: "documents" } },
+          { text: "EMR", subText: "(Electronic Medical Record)", active: true, disabled: false, route: { name: "documents" } },
           { text: "Customer Care", href: "https://docs.debio.network/getting-started" },
         ]
       },
@@ -251,7 +332,7 @@ const customerRoutes = [{
           { text: "Request Test", disabled: false, route: { name: "request-test" } },
           { text: "Test Results", disabled: false, route: { name: "all-test-result" } },
           { text: "Order History", disabled: false, route: { name: "order-history" } },
-          { text: "EMR", active: true, disabled: false, route: { name: "documents" } },
+          { text: "EMR", subText: "(Electronic Medical Record)", active: true, disabled: false, route: { name: "documents" } },
           { text: "Customer Care", href: "https://docs.debio.network/getting-started" },
         ]
       },
