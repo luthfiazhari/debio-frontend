@@ -4,8 +4,14 @@
       <v-card-title class="px-8" align="center">
         <div class="text-h6">BUCCAL SWAB COLLECTION PROCESS</div>
       </v-card-title>
+      <!-- <v-card-subtittle>
+        <div class="text-h8">Tools to be prepared:</div>
+      </v-card-subtittle> -->
       <v-container>
-        <v-row>
+        <span>
+          <div class="text-h8 mb-2 mx-5">Tools to be prepared:</div>
+        </span>
+        <v-row class="mt-2 mx-5">
           <!-- <v-col
             v-for="(item, i) in items"
             :key="i"
@@ -21,7 +27,7 @@
                     tile
                   >
                     <!-- <img :src="image + (i + 1) + png"> -->
-                    <img :src="image">
+                    <img :src="image" alt="image">
                     <!-- <img :src="item.img"> -->
                     <!-- <img src="@/assets/dnaCollectionSteps/dnaSteps/Collection-Step-7.png"> -->
                   </v-avatar>

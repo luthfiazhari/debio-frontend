@@ -2,7 +2,7 @@
   <div>
     <v-card class="dg-card" elevation="0" outlined>
       <v-card-title class="px-8">
-        <div class="text-h6">DNA Sample Collection Steps</div>
+        <div class="text-h6">DNA Sample Collection Steps:</div>
       </v-card-title>
       <!-- <div>
         <v-row class="px-8">
@@ -33,14 +33,14 @@
           > -->
           <v-col>
             <v-card elevation='0'>
-              <div class="d-flex">
+              <div class="d-flex ml-2">
                 <v-avatar
                   class="ma-3"
                   size="100"
                   tile
                 >
                   <!-- <img :src="image + (i + 1) + png"> -->
-                  <img :src="image">
+                  <img :src="image" alt="image">
                   <!-- <img :src="item.img"> -->
                   <!-- <img src="@/assets/dnaCollectionSteps/dnaSteps/Collection-Step-7.png"> -->
                 </v-avatar>
@@ -59,8 +59,17 @@
           <v-card-subtitle>You can see the status of your order  here</v-card-subtitle>
         </div>
         
-        <div>
-          <Button></Button>
+        <div class="mx-2">
+          <v-checkbox
+          v-model="agreeTerms"
+          label="I have read & understand"
+          ></v-checkbox>
+
+          <Button
+            dark
+            :disabled="!agreeTerms"
+            elevation="2"
+          >Submit</Button>
         </div>
       </v-container>
     </v-card>
@@ -86,6 +95,7 @@ export default {
     collectionStep: 14,
     swabCollection: 7,
     detail: 'Refrain from eating, drinking, chewing gum, brushing teeth, or smoking for at least 60 minutes before sample collection',
+    agreeTerms: false,
     // descriptions: [
     //   {
     //     detail: 'Refrain from eating, drinking, chewing gum, brushing teeth, or smoking for at least 60 minutes before sample collection'
