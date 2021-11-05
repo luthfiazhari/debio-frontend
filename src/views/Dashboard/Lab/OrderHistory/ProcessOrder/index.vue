@@ -100,6 +100,7 @@
                 <ReceiveSpecimen 
                     v-if="showReceiveDialog" 
                     :specimen-number="specimenNumber"
+                    :is-biomedical-testing="isBiomedicalTesting"
                     @specimenReceived="onSpecimenReceived" />
                 <QualityControlSpecimen
                     v-if="showQualityControlDialog"
@@ -112,12 +113,13 @@
                     :specimen-status="specimenStatus"
                     @wetWorkCompleted="onWetWorkCompleted" />
                 <ProcessSpecimen 
-                    v-if="showGenomeReportDialog || showResultDialog"
+
                     :order-id="orderId"
                     :specimen-number="specimenNumber"
                     :specimen-status="specimenStatus"
                     :public-key="publicKey"
                     :is-submitted="isSubmitted"
+                    :is-biomedical-testing="isBiomedicalTesting"
                     @resultUploaded="onResultUploaded"
                     @resultReady="onResultReady" />
 
@@ -143,6 +145,7 @@ import QualityControlSpecimen from './QualityControlSpecimen'
 import ProcessSpecimen from './ProcessSpecimen'
 import WetWorkSpecimen from './WetWorkSpecimen'
 import { getOrdersDetail } from '@/lib/polkadotProvider/query/orders'
+import { queryServicesById } from "@/lib/polkadotProvider/query/services"
 import DialogAlert from '@/components/Dialog/DialogAlert'
 import Stepper from '@/components/Stepper'
 import { queryDnaTestResults } from "@/lib/polkadotProvider/query/geneticTesting"
@@ -172,6 +175,9 @@ export default {
     showResultDialog: false,
     genomeFile: "",
     reportFile: "",
+    serviceId: "",
+    serviceCategory: "",
+    isBiomedicalTesting: true,//harusnya false, ini buat testing aja dai true
     isSubmitted: false,
     stepperItems: [
       { name: 'Received', selected: false },
@@ -190,7 +196,9 @@ export default {
       const order = await getOrdersDetail(this.api, this.orderId)
       if(order.status == "Cancelled"){
           this.cancelledOrderDialog = true
-      }
+      }// open if dev done
+      // console.log(order, 'order di proses order') // <==== deleted if done
+      // console.log(order.service_id, 'seervice id')
       this.serviceName = order.service_name
       this.serviceDescription = order.service_description
       this.serviceImage = order.service_image
@@ -200,6 +208,13 @@ export default {
       this.sellerEthAddress = order.seller_eth_address
       this.specimenNumber = order.dna_sample_tracking_id
       this.specimenStatus = order.dna_sample_status
+      this.serviceId = order.service_id
+      const orderByServiceId = await queryServicesById(this.api, this.serviceId)
+      this.serviceCategory = orderByServiceId.info.category
+      // console.log(orderByServiceId.info.category, 'data by service id =======')
+      console.log(order, 'order di proses order') // <==== deleted if done
+      console.log(this.serviceCategory, '<= proses order') // <==== deleted if done
+      this.checkOrderCategory()
       this.setCheckboxByDnaStatus()
     } catch (err) {
       console.log(err)
@@ -244,6 +259,9 @@ export default {
 
     onSpecimenReceived() {
       this.setStepperSelected(["Received"], true)
+      if (this.serviceCategory == "Biomedical Testing") {
+        this.onQcCompleted()
+      }
     },
 
     onQcCompleted() {
@@ -308,6 +326,12 @@ export default {
             }
             return { ...item }
         })
+    },
+
+    checkOrderCategory() {
+      if (this.serviceCategory == "Biomedical Testing") {
+        this.isBiomedicalTesting = true
+      }
     }
   },
   computed: {

@@ -1,4 +1,4 @@
-export async function queryServicesById(api, serviceId){
+export async function queryServicesById(api, serviceId){// query kesini dari service id buat dapetin category... 
     let res = (await api.query.services.services(serviceId))
         .toHuman()
     res.info.price = `${res.info.prices_by_currency[0].total_price} ${res.info.prices_by_currency[0].currency}`

@@ -10,20 +10,49 @@
     text-align: center;
     height: 100%;
 }
+.lab-verified-box {
+  display: flex;
+  align-items: center;
+}
+.lab-verified-box > * {
+  display: block;
+  margin-right: 10px;
+}
 </style>
 
 <template>
-   <v-container :class="!isLabAccountExist ? 'center-all' : ''">
+   <v-container :class="!isServicesExist ? 'center-all' : ''">
        <v-container
-        v-if="!isLabAccountExist"
+        v-if="!isServicesExist"
         >
          <h1 class="title-text-color">You don't have a lab account yet</h1>
          <v-btn
           color="primary"
-          @click="$router.push({name:'lab-registration'})"
+           to="/lab/registration"
         >Register Now!</v-btn>
        </v-container>
        <v-row v-else>
+        <v-col cols="12" md="12">
+          <v-card class="dg-card" elevation="0" outlined>
+            <div class="secondary--text mt-5 ml-8 mb-5 lab-verified-box">
+              <v-icon 
+                inline
+                color="primary"
+                :size="20"
+                v-if="labAccount.verified_status == 'Verified'"
+              >mdi-check-decagram</v-icon>
+              <v-icon 
+                inline
+                color="yellow darken-2"
+                :size="20"
+                v-else
+              >mdi-information</v-icon>
+
+              <b v-if="labAccount.verified_status == 'Verified'">Your account has been verified</b>
+              <b v-else>Your account has not been verified</b>
+            </div>
+          </v-card>
+        </v-col>
         <v-col cols="12" md="4">
           <MenuCard
               :height="120"
@@ -49,36 +78,13 @@
               sub-title="Payment History"
               @click="$router.push({ name: 'lab-dashboard-order-history' })"
           ></MenuCard>
-          </v-col>
-          <v-col cols="12" md="4">
-            <LabOrders />
-          </v-col>
-          <v-col cols="12" md="4">
-            <TestResults />
-          </v-col>
-          <!-- <v-col cols="12" md="8">
-            <v-card class="dg-card" elevation="0" outlined>
-              <div class="secondary--text mt-5 ml-8"><b>Lab Verification</b></div>
-              <v-card-text class="px-8">
-                  <p class="black--text">
-                      You need to go through the lab verification process in order to receive the verified badge
-                      <v-icon 
-                        inline
-                        color="primary"
-                        :size="16"
-                      >mdi-check-decagram</v-icon>.
-                  </p>
-                  <v-row>
-                      <v-col cols="12" md="12">
-                              <v-btn
-                                  color="primary"
-                                  block
-                                  medium>Verify Account</v-btn>
-                      </v-col>
-                  </v-row>
-              </v-card-text>
-            </v-card>
-          </v-col> -->
+        </v-col>
+        <v-col cols="12" md="4">
+          <LabOrders />
+        </v-col>
+        <v-col cols="12" md="4">
+          <TestResults />
+        </v-col>
        </v-row>
    </v-container>
 </template>
@@ -98,7 +104,8 @@ export default {
   },
   computed: {
     ...mapState({
-      isLabAccountExist: (state) => state.substrate.isLabAccountExist,
+      labAccount: (state) => state.substrate.labAccount,
+      isServicesExist: (state) => state.substrate.isServicesExist,
     }),
   },
 }

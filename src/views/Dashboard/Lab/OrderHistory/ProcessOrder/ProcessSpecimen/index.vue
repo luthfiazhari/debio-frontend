@@ -7,7 +7,7 @@
         ref="encryptUploadGenome"
         accept=".vcf"
       />
-      <div v-if="hasGenomeFile" class="d-flex mt-5 mb-5">
+      <div v-if="hasGenomeFile && !isBiomedicalTesting" class="d-flex mt-5 mb-5">
         <v-row >
           <v-col>
             <b class="secondary--text card-header mb-2" style="display: block">VCF Data</b>
@@ -23,7 +23,7 @@
           </v-col>
         </v-row>
       </div>
-      <div v-else class="mb-3 mt-3">
+      <div v-if="!hasGenomeFile && !isBiomedicalTesting" class="mb-3 mt-3">
         <v-btn
           color="primary"
           large
@@ -54,7 +54,7 @@
         ref="encryptUploadReport"
         accept="application/pdf"
       />
-      <div v-if="hasReportFile" class="d-flex mt-5 mb-5">
+      <div v-if="hasReportFile && isBiomedicalTesting" class="d-flex mt-5 mb-5">
         <v-row >
           <v-col>
             <b class="secondary--text card-header mb-2" style="display: block">Report Files</b>
@@ -70,7 +70,7 @@
           </v-col>
         </v-row>
       </div>
-      <div v-else class="mb-3">
+      <div v-if="!hasReportFile && isBiomedicalTesting" class="mb-3">
         <v-btn
           color="primary"
           large
@@ -188,6 +188,7 @@ export default {
     specimenNumber: String,
     specimenStatus: String,
     publicKey: [Uint8Array, String],
+    isBiomedicalTesting: Boolean
   },
 
   data: () => ({
@@ -235,6 +236,7 @@ export default {
     if(testResult) this.setUploadFields(testResult)
 
     this.submitted = this.isSubmitted
+
   },
 
   computed: {

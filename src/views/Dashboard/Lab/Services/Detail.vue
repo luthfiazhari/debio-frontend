@@ -42,7 +42,21 @@
                     v-model="category"
                     outlined
                     :items="listCategories"
-                    :rules="[val => !!val || 'Category is Required']"
+                    item-text="service_categories"
+                    item-value="service_categories"
+                    :rules="serviceCategoryRules"
+                    ></v-select>
+
+                    <v-select
+                    dense
+                    label="Type of Biological Sample"
+                    placeholder="Type of Biological Sample"
+                    v-model="biologicalType"
+                    outlined
+                    :items="listBiologicalType"
+                    item-text="dna_collection_process"
+                    item-value="dna_collection_process"
+                    :rules="biologicalTypeRules"
                     ></v-select>
 
                     <v-text-field
@@ -51,7 +65,7 @@
                       placeholder="Service Name"
                       outlined
                       v-model="name"
-                      :rules="[val => !!val || 'Name is Required']"
+                      :rules="serviceNameRules"
                     ></v-text-field>
 
                     <div class="d-flex">
@@ -64,7 +78,7 @@
                           max="30"
                           v-model="currencyType"
                           :items="currencyList"
-                          :rules="[val => !!val || 'Currency Type is Required']"
+                          :rules="curencyTypeRules"
                           ></v-select>
                         </v-col>
                         <v-col>
@@ -74,7 +88,7 @@
                             placeholder="Price"
                             outlined
                             v-model="price"
-                            :rules="[val => !!val || 'Price is Required']"
+                            :rules="priceRules"
                           ></v-text-field>
                         </v-col>
                         <v-col>
@@ -84,7 +98,7 @@
                           dense
                           v-model="currencyType"
                           :items="currencyList"
-                          :rules="[val => !!val || 'QC Currency Type is Required']"
+                          :rules="qcQurencyTypeRules"
                           ></v-select>
                         </v-col>
                         <v-col>
@@ -94,7 +108,7 @@
                             placeholder="QC Price"
                             outlined
                             v-model="qcPrice"
-                            :rules="[val => !!val || 'QC Price is Required']"
+                            :rules="cqPriceRules"
                           ></v-text-field>
                         </v-col>
                       </v-row>
@@ -106,7 +120,7 @@
                       placeholder="Short Description"
                       outlined
                       v-model="description"
-                      :rules="[val => !!val || 'Description is Required']"
+                      :rules="descriptionRules"
                     ></v-text-field>
                     
                     <v-row >
@@ -118,7 +132,7 @@
                           max="30"
                           outlined
                           v-model="expectedDuration"
-                          :rules="[val => !!val || 'Expected duration is Required']"
+                          :rules="expectedDurationRules"
                         ></v-text-field>
                       </v-col>
                       <v-col cols="4">
@@ -127,7 +141,7 @@
                           dense
                           v-model="selectExpectedDuration"
                           :items="listExpectedDuration"
-                          :rules="[val => !!val || 'Expected duration is Required']"
+                          :rules="expectedDurationRules"
                         ></v-select>
                       </v-col>
                     </v-row>
@@ -138,10 +152,11 @@
                       placeholder="Long Description"
                       outlined
                       v-model="longDescription"
+                      :rules="longDescriptionRules"
                     ></v-textarea>
 
                     <v-file-input
-                      :rules="rules"
+                      :rules="fileInputRules"
                       accept="image/png, image/jpeg, image/bmp"
                       dense
                       label="Test Result Sample"
@@ -172,10 +187,12 @@
 <script>
 import { mapGetters } from 'vuex'
 import { upload } from "@/lib/ipfs"
+import { getCategories } from "@/lib/categories"
 import { updateService } from '@/lib/polkadotProvider/command/services'
 
 export default {
   name: 'EditLabServices',
+
   data: () => ({
     name: "",
     category: "",
@@ -193,24 +210,24 @@ export default {
     currencyList: ['DAI', 'Ethereum'],
     currencyType: "",
     listExpectedDuration: ['WorkingDays', 'Hours', 'Days'],
+    listCategories: [],
     selectExpectedDuration: "",
     expectedDuration: "",
-    rules: [
-      value => !value || value.size < 2000000 || 'Image size should be less than 2 MB!',
-    ],
-  }),
-  mounted(){
-    this.listCategories = [
-      "Bioinformatics Data Analysis Support & Genetic Counseling", 
-      "Covid-19 Testing", 
-      "Single Nucleotide Polymorphism (SNP) Microarray", 
-      "Targeted Gene Panel Sequencing",
-      "Whole-Exome Sequencing",
-      "Whole-Genome Sequencing",
-      "Whole-Transcriptome Sequencing",
-      "Others"
+    biologicalType: "",
+    listBiologicalType: [
+      "Covid 19 Saliva Test",
+      "Blood Cells - Dried Blood Spot Collection Process",
+      "Epithelial Cells - Buccal Swab Collection Process",
+      "Fecal Matters - Stool Collection Process",
+      "Saliva - Saliva Collection Process",
+      "Urine - Clean Catch Urine Collection Process",
     ]
+  }),
+
+  async mounted(){
+    await this.getServiceCategory()
     const item = this.$route.params.item
+    console.log(item, 'item')
     this.id = item.id
     this.name = item.info.name
     this.price = item.info.prices_by_currency[0].price_components[0].value
@@ -223,6 +240,7 @@ export default {
     this.expectedDuration = item.info.expected_duration.duration
     this.selectExpectedDuration = item.info.expected_duration.duration_type
     this.category = item.info.category
+    this.biologicalType = item.info.dna_collection_process
     
     if(this.imageUrl){
       fetch(this.imageUrl)
@@ -240,13 +258,96 @@ export default {
       });
     }
   },
+
   computed: {
+
     ...mapGetters({
       api: 'substrate/getAPI',
       pair: 'substrate/wallet',
     }),
+
+    serviceCategoryRules() {
+      return [
+        val => !!val || 'Category is Required'
+      ]
+    },
+
+    biologicalTypeRules() {
+      return [
+        val => !!val || 'Biologocal type is Require'
+      ]
+    },
+
+    serviceNameRules() {
+      return [
+        val => !!val || 'Name is Required',
+        val => (val && val.length <= 50) || 'Max 50 Character'
+      ]
+    },
+
+    curencyTypeRules() {
+      return [
+        val => !!val || 'Currency Type is Required'
+      ]
+    },
+
+    priceRules() {
+      return [
+        val => !!val || 'Price is Required',
+        val => /^[0-9]+$/.test(val) || 'Price must be Number'
+      ]
+    },
+
+    qcQurencyTypeRules() {
+      return [
+        val => !!val || 'QC Currency Type is Required'
+      ]
+    },
+    
+    cqPriceRules() {
+      return [
+        val => !!val || 'QC Price is Required',
+        val => /^[0-9]+$/.test(val) || 'QC Price must be Number'
+      ]
+    },
+
+    descriptionRules() {
+      return [
+        val => !!val || 'Description is Required',
+        val => (val && val.length >= 50) || 'Min 50 Character',
+        val => (val && val.length <= 255) || 'Max 255 Character'
+      ]
+    },
+
+    longDescriptionRules() {
+      return [
+        val => !!val || 'Long Description is Required',
+        val => (val && val.length >= 500) || 'Max 500 Character',
+        val => (val && val.length <= 1000) || 'Max 1000 Character'
+      ]
+    },
+
+    expectedDurationRules() {
+      return [
+        val => !!val || 'Expected duration is Required'
+      ]
+    },
+
+    fileInputRules() {
+      return [
+        value => !value || value.size < 2000000 || 'Image size should be less than 2 MB!',
+      ]
+    },
+
   },
+
   methods: {
+
+    async getServiceCategory() {
+      const { data : data } = await getCategories()
+      this.listCategories =  data
+    },
+
     async updateService() {
       if(this.isLoading) return // If function already running return.
       if (!this.$refs.addServiceForm.validate()) {
@@ -285,6 +386,7 @@ export default {
           test_result_sample: this.testResultSampleUrl,
           long_description: this.longDescription,
           image: this.imageUrl,
+          dna_collection_process: this.biologicalType,
         },
         () => {
           this.$router.push('/lab/services')
@@ -292,6 +394,7 @@ export default {
         }
       )
     },
+
     imageUploadEventListener(file) {
       this.isUploading = true
       this.isLoading = true
@@ -317,6 +420,7 @@ export default {
         })
       }
     },
+
     fileUploadEventListener(file) {
       if (!file || file.size >= 2000000) {
         return
@@ -345,9 +449,11 @@ export default {
         })
       }
     },
+
     selectPicture() {
       this.$refs.fileInput.$refs.input.click()
     },
+
   },
 }
 </script>

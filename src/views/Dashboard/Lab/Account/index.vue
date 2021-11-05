@@ -51,6 +51,7 @@
                     :disabled="!isEditable"
                     @change="fileUploadEventListener"
                     :rules="rules"
+                    v-model="files"
                     show-size
                   ></v-file-input>
                 </v-container>
@@ -125,6 +126,28 @@
                   :disabled="!isEditable"
                 ></v-text-field>
 
+                <v-text-field
+                  dense
+                  label="Phone Number"
+                  placeholder="Phone Number"
+                  autocomplete="off"
+                  outlined
+                  v-model="phoneNumber"
+                  :rules="phoneNumberRules"
+                  :disabled="!isEditable"
+                ></v-text-field>
+
+                <v-text-field
+                  dense
+                  label="Website"
+                  placeholder="Website"
+                  autocomplete="off"
+                  outlined
+                  v-model="website"
+                  :rules="websiteRules"
+                  :disabled="!isEditable"
+                ></v-text-field>
+
                 <v-btn
                   color="primary"
                   block
@@ -164,6 +187,8 @@ export default {
     email: "",
     labName: "",
     address: "",
+    phoneNumber: "",
+    website: "",
     country: "",
     state: "",
     city: "",
@@ -171,6 +196,7 @@ export default {
     countries: [],
     states: [],
     cities: [],
+    files: [],
     isEditable: false,
     isUploading: false
   }),
@@ -199,6 +225,22 @@ export default {
       ]
     },
 
+    phoneNumberRules() {
+      return [
+        val => !!val || 'Phone Number is Required',
+        val => /^\+?([0-9]{2})\)?[-. ]?([0-9]{4})[-. ]?([0-9]{4})$/.test(val) || 'Phone Number must be valid',
+        val => (val && val.length <= 15) || 'Max 15 Digits'
+      ]
+    },
+
+    websiteRules() {
+      return [
+        val => !!val || 'Website URL is Required',
+        val => /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/.test(val) || 'Website URL must be valid', //eslint-disable-line
+        val => (val && val.length <= 2048) || 'Max 2048 Characters'
+      ]
+    },
+
     computeCountryLabel() {
       return !this.country && this.isLoading ? this.loadingPlaceholder : "Select Region"
     },
@@ -217,12 +259,19 @@ export default {
     this.email = labInfo.email
     this.labName = labInfo.name
     this.address = labInfo.address
+    this.phoneNumber = labInfo.phone_number
+    this.website = labInfo.website
     this.imageUrl = labInfo.profile_image
 
     await this.getCountries()
     await this.onCountryChange(labInfo.country)
     await this.onStateChange(labInfo.region) // Region means the state, backend response got region instead state
     await this.onCityChange({ name: labInfo.city })
+
+    const res = await fetch(this.imageUrl)
+    const blob = await res.blob() // Gets the response and returns it as a blob
+    const file = new File([blob], this.imageUrl.substring(21), {type: "image/jpeg"})
+    this.files = file
   },
 
   methods: {
@@ -281,6 +330,8 @@ export default {
             name: this.labName,
             email: this.email,
             address: this.address,
+            phone_number: this.phoneNumber,
+            website: this.website,
             country: this.country,
             region: this.state, // Region means the state, backend parameter only accept region instead state
             city: this.city,

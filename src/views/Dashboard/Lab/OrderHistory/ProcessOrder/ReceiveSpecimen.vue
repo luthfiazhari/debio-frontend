@@ -46,6 +46,7 @@ export default {
   },
   props: {
     specimenNumber: String,
+    isBiomedicalTesting: Boolean,
   },
   data: () => ({
     isLoading: false,
@@ -72,9 +73,21 @@ export default {
           "Arrived",
           () => {
             this.isLoading = false
-            this.specimenAlertDialog = true
           }
         )
+        if (this.isBiomedicalTesting) {
+          await processDnaSample(
+            this.api,
+            this.pair,
+            this.specimenNumber,
+            "QualityControlled",
+            () => {
+              this.specimenAlertDialog = true
+            }
+          )
+        } else {
+          this.specimenAlertDialog = true
+        }
       }
     },
   },
